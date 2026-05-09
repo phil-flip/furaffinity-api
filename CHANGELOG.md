@@ -1,5 +1,16 @@
 ## CHANGELOG
 
+### 4.5.4
+
+- Fix FurAffinity new Display Names break author ids (#21)
+
+### 4.5.3
+
+- Fix FA site change(breaking submission, author and watching list API)
+
+### 4.5.2
+
+- Fix exceptions in parser after tag-blocking update (#20)
 
 ### 4.5.1
 
@@ -35,7 +46,7 @@
 
 ### Fix
 
-- Rename SearchOption `range_from` `range_to` to `rangeFrom` `rangeTo` 
+- Rename SearchOption `range_from` `range_to` to `rangeFrom` `rangeTo`
 - Fix date format to ISO string
 - Replae cloudscraper with hooman ([#12](https://github.com/recallfuture/furaffinity-api/pull/12))
 

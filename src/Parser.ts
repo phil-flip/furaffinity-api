@@ -7,7 +7,7 @@ import { BrowseOptions, ENDPOINT, FaveSubmission, SearchOptions, SubmissionsOpti
 
 export class FASystemError extends Error {
   constructor(message: string) {
-    super(message)
+    super(message);
   }
 }
 
@@ -38,7 +38,7 @@ function checkSystemMessage($: CheerioStatic) {
   // Check system error
   const title = $("head title");
   if (title[0].firstChild.data === "System Error") {
-    const sectionBody = $("section .section-body")
+    const sectionBody = $("section .section-body");
     throw new FASystemError(sectionBody[0].firstChild.data?.trim() || "Unknown error.");
   }
 }
@@ -51,7 +51,11 @@ export function ParseFigure(figure: CheerioElement, selector: Cheerio): IResult 
   const id: string = figure.attribs.id.split("-").pop() ?? "";
   const thumb: string = "http:" + figure.childNodes[1].childNodes[1].childNodes[1].childNodes[1].attribs.src;
   const authorName = selector.find("figcaption p:last-child a").first().attr().title;
-  const authorId = convertNameToId(authorName);
+  const authorId = selector
+    .find("figcaption p:last-child a")
+    .first()
+    .attr()
+    .href.replace(/^\/user\/|\/$/g, "");
 
   return {
     type: SubmissionType[classNames(figure)[1].split("-").pop() as keyof typeof SubmissionType],
@@ -289,8 +293,8 @@ export function ParseSubmission(body: string, id: string): ISubmission {
 
   // header
   const title: string = content.find(".submission-id-sub-container .submission-title p")[0].childNodes[0].data?.trim() ?? "";
-  const authorName: string = content.find(".submission-id-sub-container a strong")[0].childNodes[0].data?.trim() ?? "";
-  const authorId: string = convertNameToId(authorName);
+  const authorName: string = content.find(".submission-id-sub-container .c-usernameBlockSimple__displayName")[0].childNodes[0].data?.trim() ?? "";
+  const authorId: string = content.find(".submission-id-sub-container .c-usernameBlockSimple__displayName")[0].attribs.title.trim();
   const posted: string = content.find(".submission-id-sub-container strong span")[0].attribs.title;
   const authorAvatar: string = `http:${content.find(".submission-id-avatar img")[0].attribs.src}`;
   const authorShinies: boolean = !!$(".shinies-promo");
@@ -364,12 +368,12 @@ export function ParseAuthor(body: string): IAuthor {
 
   checkSystemMessage($);
 
-  const name: string = $("userpage-nav-user-details username")[0].childNodes[0].data?.trim().slice(1) ?? "";
-  const id: string = convertNameToId(name);
+  const name: string = $("userpage-nav-user-details .js-displayName")[0].childNodes[0].data?.trim() ?? "";
+  const id: string = $("userpage-nav-user-details .js-userName-block span")[0].childNodes[1].data?.trim() ?? "";
   const url: string = `https://www.furaffinity.net/user/${id}`;
   const shinies: boolean = !!$(".userpage-layout-left-col-content > a:nth-child(4)");
   const avatar: string = `https:${$("userpage-nav-avatar img")[0].attribs.src}`;
-  
+
   const statsCells = $(".userpage-section-right .cell");
   const views: string = statsCells[0].childNodes[2].data?.trim() ?? "0";
   const submissions: string = statsCells[0].childNodes[6].data?.trim() ?? "0";
@@ -377,11 +381,11 @@ export function ParseAuthor(body: string): IAuthor {
   const commentsEarned: string = statsCells[1].childNodes[2].data?.trim() ?? "0";
   const commentsMade: string = statsCells[1].childNodes[6].data?.trim() ?? "0";
   const journals: string = statsCells[1].childNodes[10].data?.trim() ?? "0";
-  
+
   // TODO: add exception if author is user, if not already done
   const watchButton = $("userpage-nav-interface-buttons a")[0];
   const watchLink = watchButton ? `${ENDPOINT}${watchButton.attribs.href}` : undefined;
-  const watching = watchButton ? watchButton.attribs.class.includes('stop') : false;
+  const watching = watchButton ? watchButton.attribs.class.includes("stop") : false;
 
   return {
     id,
@@ -401,10 +405,8 @@ export function ParseAuthor(body: string): IAuthor {
 
       watching
     },
-    watchAuthor: !watching && watchLink
-      ? async () => await RequestToggleWatch(watchLink) : undefined,
-    unwatchAuthor: watching && watchLink
-    ? async () => await RequestToggleWatch(watchLink) : undefined
+    watchAuthor: !watching && watchLink ? async () => await RequestToggleWatch(watchLink) : undefined,
+    unwatchAuthor: watching && watchLink ? async () => await RequestToggleWatch(watchLink) : undefined
   };
 }
 
@@ -417,10 +419,10 @@ export function ParseWatchingList(body: string): IAuthor[] {
 
   checkSystemMessage($);
 
-  return $(".watch-list-items a")
-    .map((index, a) => {
-      const name = a.childNodes[0].data?.trim() ?? "";
-      const id = convertNameToId(name);
+  return $(".watch-list-items a span")
+    .map((index, span) => {
+      const name = span.childNodes[0].data?.trim() ?? "";
+      const id = span.attribs.title.trim();
       const url = `${ENDPOINT}/user/${id}`;
 
       return {
@@ -444,8 +446,8 @@ export function ParseMyWatchingList(body: string): IAuthor[] {
   return $(".flex-item-watchlist")
     .map((index, div) => {
       const avatar = `https:${$(div).find("img.avatar")[0].attribs.src}`;
-      const name = $(div).find(".flex-item-watchlist-controls a strong")[0].childNodes[0].data?.trim() ?? "";
-      const id = convertNameToId(name);
+      const name = $(div).find(".flex-item-watchlist-controls .c-usernameBlockSimple__displayName")[0].childNodes[0].data?.trim() ?? "";
+      const id = $(div).find(".flex-item-watchlist-controls .c-usernameBlockSimple__displayName")[0].attribs.title.trim();
       const url = `${ENDPOINT}/user/${id}`;
 
       return {
