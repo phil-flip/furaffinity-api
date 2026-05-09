@@ -285,6 +285,7 @@ export function ParseSubmission(body: string, id: string): ISubmission {
   const stats = main.find(".submission-page-stats");
   const info = main.find(".submission-content-stats");
   const tags = main.find(".submission-tags .tags a");
+  const invalidTags = main.find(".submission-tags .tags .tag-invalid");
 
   // buttons
   let downloadUrl: string = `http:${sidebar.find("a.button")[2].attribs.href}`;
@@ -349,6 +350,11 @@ export function ParseSubmission(body: string, id: string): ISubmission {
     previewUrl,
     keywords: tags
       .filter((index, tag) => tag.attribs.href !== "javascript:void(0);")
+      .map((index, tag) => {
+        return tag.childNodes[0].data?.trim() ?? "";
+      })
+      .get(),
+    keywordsInvalid: invalidTags
       .map((index, tag) => {
         return tag.childNodes[0].data?.trim() ?? "";
       })
