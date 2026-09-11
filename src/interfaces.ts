@@ -68,6 +68,7 @@ export interface ISubmission {
   downloadUrl: string;
   previewUrl?: string;
   keywords: string[];
+  keywordsInvalid: string[];
   fave?(): Promise<void>;
 }
 

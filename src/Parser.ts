@@ -278,45 +278,48 @@ export function ParseSubmission(body: string, id: string): ISubmission {
   checkSystemMessage($);
 
   // Get main nodes
-  const main = $("#columnpage");
-  const sidebar = main.find(".submission-sidebar");
-  const content = main.find(".submission-content");
+  const main = $("#main-window");
+  const sidebar = main.find(".submission-controls-upper");
+  const content = main.find(".submission-details");
 
-  const stats = sidebar.find(".stats-container");
-  const info = sidebar.find(".info");
-  const tags = sidebar.find(".tags-row .tags a");
+  const stats = main.find(".submission-page-stats");
+  const info = main.find(".submission-content-stats");
+  const tags = main.find(".submission-tags .tags a");
+  const invalidTags = main.find(".submission-tags .tags .tag-invalid");
 
   // buttons
-  let downloadUrl: string = `http:${sidebar.find(".buttons .download a")[0].attribs.href}`;
-  const favLinkNode = sidebar.find(".buttons .fav a")[0];
+  let downloadUrl: string = `http:${sidebar.find("a.button")[2].attribs.href}`;
+  const favLinkNode = sidebar.find("a.button")[0];
   const favLink = favLinkNode ? `http://furaffinity.net${favLinkNode.attribs.href}` : undefined;
 
   // header
-  const title: string = content.find(".submission-id-sub-container .submission-title p")[0].childNodes[0].data?.trim() ?? "";
-  const authorName: string = content.find(".submission-id-sub-container .c-usernameBlockSimple__displayName")[0].childNodes[0].data?.trim() ?? "";
-  const authorId: string = content.find(".submission-id-sub-container .c-usernameBlockSimple__displayName")[0].attribs.title.trim();
-  const posted: string = content.find(".submission-id-sub-container strong span")[0].attribs.title;
-  const authorAvatar: string = `http:${content.find(".submission-id-avatar img")[0].attribs.src}`;
+  const title: string = content.find(".submission-title h2")[0].childNodes[0].data?.trim() ?? "";
+  const authorName: string = content.find(".c-usernameBlockSimple .c-usernameBlockSimple__displayName")[0].childNodes[0].data?.trim() ?? "";
+  const authorId: string = content.find(".c-usernameBlockSimple .c-usernameBlockSimple__displayName")[0].attribs.title.trim();
+  const posted: string = content.find("span.popup_date")[0].attribs.title;
+  const authorAvatar: string = `http:${content.find("img.submission-user-icon")[0].attribs.src}`;
   const authorShinies: boolean = !!$(".shinies-promo");
   const description: string = content.find(".submission-description").html()?.trim() ?? "";
 
   // stats
-  const rating: Rating = Rating[stats.find(".rating span")[0].childNodes[0].data?.trim() as keyof typeof Rating];
-  const favorites: number = Number.parseInt(stats.find(".favorites span")[0].childNodes[0].data?.trim() ?? "");
-  const comments: number = Number.parseInt(stats.find(".comments span")[0].childNodes[0].data?.trim() ?? "");
-  const views: number = Number.parseInt(stats.find(".views span")[0].childNodes[0].data?.trim() ?? "");
+  const rating: Rating = Rating[stats.find("div .font-large.inline")[0].childNodes[0].data?.trim() as keyof typeof Rating];
+  const favorites: number = Number.parseInt(stats.find("div")[6].childNodes[1].childNodes[0].data?.trim() ?? "");
+  const comments: number = Number.parseInt(stats.find("div")[3].childNodes[1].childNodes[0].data?.trim() ?? "");
+  const views: number = Number.parseInt(stats.find("div")[0].childNodes[1].childNodes[0].data?.trim() ?? "");
 
   // info
-  const category: Category = Category[info.find(".category-name")[0].childNodes[0].data?.trim() as keyof typeof Category];
-  const species: Species = Species[info[0].childNodes[3].childNodes[2].childNodes[0].data?.trim() as keyof typeof Species];
-  const gender: Gender = Gender[info[0].childNodes[5].childNodes[2].childNodes[0].data?.trim() as keyof typeof Gender];
+  const category: Category = Category[info.find("span")[7].childNodes[0].data?.trim() as keyof typeof Category];
+  const species: Species = Species[info.find("span")[9].childNodes[0].data?.trim() as keyof typeof Species];
+  // FIXME: couldn't find "gender" anymore on the frontend, might have gotten sunset.
+  // const gender: Gender = Gender[info[0].childNodes[5].childNodes[2].childNodes[0].data?.trim() as keyof typeof Gender];
+  const gender: Gender = Gender['Other / Not Specified'];
 
   // fix url when category is story or poetry
   if (category === Category.Story || category === Category.Poetry) {
     downloadUrl = downloadUrl.replace("d.facdn.net/download/", "d.facdn.net/");
   }
 
-  const previewUrl: string | undefined = content.find(".submission-area img").length > 0 ? `http:${content.find(".submission-area img")[0].attribs["data-preview-src"]}` : undefined;
+  const previewUrl: string | undefined = main.find("#submissionImg").length > 0 ? `http:${main.find("#submissionImg")[0].attribs["data-preview-src"]}` : undefined;
 
   return {
     id,
@@ -347,6 +350,11 @@ export function ParseSubmission(body: string, id: string): ISubmission {
     previewUrl,
     keywords: tags
       .filter((index, tag) => tag.attribs.href !== "javascript:void(0);")
+      .map((index, tag) => {
+        return tag.childNodes[0].data?.trim() ?? "";
+      })
+      .get(),
+    keywordsInvalid: invalidTags
       .map((index, tag) => {
         return tag.childNodes[0].data?.trim() ?? "";
       })
