@@ -23,7 +23,7 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "cheerio": "^1.2.0",
+    "cheerio": "^1.0.0",
     "got": "^16.0.0",
     "hooman": "^2.0.0",
     "hpagent": "^0.1.2",
